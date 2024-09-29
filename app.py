@@ -1,96 +1,159 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import mysql.connector
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Required to use session
 
-# MySQL database connection
+# Database connection
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
         username="root",
-        password="",
+        password="",  # Set your MySQL password
         database="agricultureequipment"
     )
 
-# Home route to display data and handle form submission
-@app.route('/', methods=['GET', 'POST'])
+# Route for the home page (Login Page)
+@app.route('/')
 def index():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    return render_template('login.html')
 
-    # Handle form submission (POST request)
+# Route for the registration page
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = generate_password_hash(password)  # Hashing the password for security
+
+        # Save user to the database
+        db = get_db_connection()
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
+        db.commit()
+        cursor.close()
+        db.close()
+
+        flash('Registration successful! You can now login.', 'success')
+        return redirect(url_for('index'))
+
+    return render_template('register.html')
+
+# Route for login
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+    user = cursor.fetchone()
+    cursor.close()
+    db.close()
+
+    if user and check_password_hash(user[2], password):  # Assuming password is in 2nd column
+        session['user_id'] = user[0]  # Store user ID in session
+        session['username'] = user[1]  # Store username in session
+        return redirect(url_for('equipment_details'))  # Redirect to equipment details
+    else:
+        flash('Login failed. Check your username or password.', 'danger')
+        return redirect(url_for('index'))
+
+# Route for the equipment details page
+@app.route('/equipment_details', methods=['GET', 'POST'])
+def equipment_details():
+    if 'user_id' not in session:
+        return redirect(url_for('index'))  # Redirect to login if not logged in
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    if request.method == 'POST':
+        # Insert new equipment data
         name = request.form['name']
-        type = request.form['type']
+        type_ = request.form['type']
         manufacturer = request.form['manufacturer']
         model = request.form['model']
         purchase_date = request.form['purchase_date']
         purchase_price = request.form['purchase_price']
         status = request.form['status']
 
-        # Insert data into the 'equipment' table
-        sql = "INSERT INTO equipment (name, type, manufacturer, model, purchase_date, purchase_price, status) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        val = (name, type, manufacturer, model, purchase_date, purchase_price, status)
-        cursor.execute(sql, val)
-        conn.commit()
+        cursor.execute("""
+            INSERT INTO equipment (name, type, manufacturer, model, purchase_date, purchase_price, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (name, type_, manufacturer, model, purchase_date, purchase_price, status))
+        db.commit()
+        flash('Equipment added successfully!', 'success')
 
-        return redirect('/')
-
-    # Fetch data from the 'equipment' table (GET request)
+    # Fetch all equipment data
     cursor.execute("SELECT * FROM equipment")
     equipment_data = cursor.fetchall()
-
     cursor.close()
-    conn.close()
+    db.close()
 
-    return render_template('index.html', equipment=equipment_data)
+    return render_template('equipment_details.html', equipment=equipment_data, username=session['username'])
 
-# Route to update (edit) equipment
-@app.route('/edit/<int:id>', methods=['POST'])
-def edit_equipment(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+# Route for editing equipment
+@app.route('/edit/<int:equip_id>', methods=['GET', 'POST'])
+def edit_equipment(equip_id):
+    if 'user_id' not in session:
+        return redirect(url_for('index'))  # Redirect to login if not logged in
 
-    # Fetch the updated data from the form
-    name = request.form['name']
-    type = request.form['type']
-    manufacturer = request.form['manufacturer']
-    model = request.form['model']
-    purchase_date = request.form['purchase_date']
-    purchase_price = request.form['purchase_price']
-    status = request.form['status']
+    db = get_db_connection()
+    cursor = db.cursor()
 
-    # Update the record in the 'equipment' table
-    sql = """
-        UPDATE equipment 
-        SET name = %s, type = %s, manufacturer = %s, model = %s, purchase_date = %s, purchase_price = %s, status = %s 
-        WHERE id = %s
-    """
-    val = (name, type, manufacturer, model, purchase_date, purchase_price, status, id)
-    cursor.execute(sql, val)
-    conn.commit()
+    if request.method == 'POST':
+        # Update the equipment data in the database
+        name = request.form['name']
+        type_ = request.form['type']
+        manufacturer = request.form['manufacturer']
+        model = request.form['model']
+        purchase_date = request.form['purchase_date']
+        purchase_price = request.form['purchase_price']
+        status = request.form['status']
 
+        cursor.execute("""
+            UPDATE equipment
+            SET name = %s, type = %s, manufacturer = %s, model = %s, purchase_date = %s, purchase_price = %s, status = %s
+            WHERE id = %s
+        """, (name, type_, manufacturer, model, purchase_date, purchase_price, status, equip_id))
+        db.commit()
+        cursor.close()
+        db.close()
+        flash('Equipment updated successfully!', 'success')
+        return redirect(url_for('equipment_details'))
+
+    # Fetch the current equipment details to pre-fill the form
+    cursor.execute("SELECT * FROM equipment WHERE id = %s", (equip_id,))
+    equipment = cursor.fetchone()
     cursor.close()
-    conn.close()
+    db.close()
 
-    # Redirect back to the home page after updating
-    return redirect('/')
+    return render_template('edit_equipment.html', equipment=equipment)
 
-# Route to delete equipment
-@app.route('/delete/<int:id>', methods=['POST'])
-def delete_equipment(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+# Route for deleting equipment
+@app.route('/delete/<int:equip_id>')
+def delete_equipment(equip_id):
+    if 'user_id' not in session:
+        return redirect(url_for('index'))  # Redirect to login if not logged in
 
-    # Delete the record from the 'equipment' table where the id matches
-    sql = "DELETE FROM equipment WHERE id = %s"
-    cursor.execute(sql, (id,))
-    conn.commit()
-
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM equipment WHERE id = %s", (equip_id,))
+    db.commit()
     cursor.close()
-    conn.close()
+    db.close()
 
-    return redirect('/')
+    flash('Equipment deleted successfully!', 'success')
+    return redirect(url_for('equipment_details'))
 
-if __name__ == "__main__":
+# Route for logout
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
     app.run(debug=True)

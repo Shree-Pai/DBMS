@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Edit Equipment</title>
+</head>
+<body>
+    <h1>Edit Equipment</h1>
+    <form action="{{ url_for('edit_equipment', equip_id=equipment[0]) }}" method="POST">
+        <label for="name">Name</label>
+        <input type="text" name="name" value="{{ equipment[1] }}" required><br>
+
+        <label for="type">Type</label>
+        <input type="text" name="type" value="{{ equipment[2] }}" required><br>
+
+        <label for="manufacturer">Manufacturer</label>
+        <input type="text" name="manufacturer" value="{{ equipment[3] }}" required><br>
+
+        <label for="model">Model</label>
+        <input type="text" name="model" value="{{ equipment[4] }}" required><br>
+
+        <label for="purchase_date">Purchase Date</label>
+        <input type="date" name="purchase_date" value="{{ equipment[5] }}" required><br>
+
+        <label for="purchase_price">Purchase Price</label>
+        <input type="number" name="purchase_price" value="{{ equipment[6] }}" required><br>
+
+        <label for="status">Status</label>
+        <input type="text" name="status" value="{{ equipment[7] }}" required><br>
+
+        <input type="submit" value="Update Equipment">
+    </form>
+    <br>
+    <a href="{{ url_for('equipment_details') }}">Back to Equipment List</a>
+</body>
+</html>
