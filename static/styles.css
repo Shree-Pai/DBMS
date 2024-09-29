@@ -1,4 +1,35 @@
-/* Styles for the table */
+/* Base styles */
+:root {
+    --background-color: #ffffff;
+    --text-color: #000000;
+    --primary-color: #4CAF50;
+    --secondary-color: #f0f0f0;
+}
+
+[data-theme="dark"] {
+    --background-color: #2e2e2e;
+    --text-color: #ffffff;
+    --primary-color: #9acd32;
+    --secondary-color: #3e3e3e;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1, h2 {
+    color: var(--primary-color);
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -6,30 +37,46 @@ table {
 }
 
 th, td {
-    padding: 12px;
-    border: 1px solid #ddd;
-    text-align: center;
+    padding: 10px;
+    border: 1px solid var(--secondary-color);
 }
 
 th {
-    background-color: #4CAF50;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--text-color);
 }
 
-tr:nth-child(even) {
-    background-color: #f2f2f2;
+td {
+    background-color: var(--secondary-color);
 }
 
-/* Styles for the Delete button */
-form input[type="submit"] {
-    background-color: #ff4c4c;
-    color: white;
-    padding: 8px 16px;
+button {
+    padding: 5px 10px;
+    background-color: var(--primary-color);
     border: none;
-    border-radius: 4px;
+    color: var(--text-color);
     cursor: pointer;
 }
 
-form input[type="submit"]:hover {
-    background-color: #ff0000;
+button:hover {
+    background-color: var(--primary-color);
+}
+
+input[type="submit"] {
+    padding: 5px 10px;
+    background-color: var(--primary-color);
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background-color: var(--primary-color);
+}
+
+/* Theme toggle switch */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
 }

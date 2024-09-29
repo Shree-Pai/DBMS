@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <div class="theme-toggle">
+        <label for="themeSwitch">Dark Mode:</label>
+        <input type="checkbox" id="themeSwitch" onclick="toggleTheme()">
+    </div>
+
     <div class="container">
         <h1>Agricultural Equipment Management</h1>
 
@@ -82,11 +87,30 @@
     </div>
 
     <script>
-        function editEquipment(id, name, type, manufacturer, model, purchase_date, purchase_price, status) {
-            // Set the form title to "Edit Equipment"
-            document.getElementById('formTitle').innerText = "Edit Equipment";
+        // Function to switch themes and store preference in localStorage
+        function toggleTheme() {
+            const themeSwitch = document.getElementById('themeSwitch');
+            if (themeSwitch.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        }
 
-            // Populate the form with the existing data
+        // Load stored theme on page load
+        window.onload = function() {
+            const storedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', storedTheme);
+            if (storedTheme === 'dark') {
+                document.getElementById('themeSwitch').checked = true;
+            }
+        };
+
+        // Edit equipment function (same as previous)
+        function editEquipment(id, name, type, manufacturer, model, purchase_date, purchase_price, status) {
+            document.getElementById('formTitle').innerText = "Edit Equipment";
             document.getElementById('id').value = id;
             document.getElementById('name').value = name;
             document.getElementById('type').value = type;
@@ -95,8 +119,6 @@
             document.getElementById('purchase_date').value = purchase_date;
             document.getElementById('purchase_price').value = purchase_price;
             document.getElementById('status').value = status;
-
-            // Change the form action to update the existing record
             document.getElementById('equipmentForm').action = "/edit/" + id;
         }
     </script>
