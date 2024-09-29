@@ -149,11 +149,11 @@ def delete_equipment(equip_id):
     flash('Equipment deleted successfully!', 'success')
     return redirect(url_for('equipment_details'))
 
-# Route for logout
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for('index'))
+    session.clear()  # Clear the session
+    flash('You have been logged out.', 'info')  # Optional flash message
+    return redirect(url_for('index'))  # Redirect to the login page
 
 if __name__ == '__main__':
     app.run(debug=True)
