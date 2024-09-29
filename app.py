@@ -80,11 +80,12 @@ def equipment_details():
         purchase_price = request.form['purchase_price']
         status = request.form['status']
 
+        # INSERT INTO database
         cursor.execute("""
             INSERT INTO equipment (name, type, manufacturer, model, purchase_date, purchase_price, status)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (name, type_, manufacturer, model, purchase_date, purchase_price, status))
-        db.commit()
+        db.commit()  # Commit the transaction
         flash('Equipment added successfully!', 'success')
 
     # Fetch all equipment data
@@ -94,6 +95,7 @@ def equipment_details():
     db.close()
 
     return render_template('equipment_details.html', equipment=equipment_data, username=session['username'])
+
 
 # Route for editing equipment
 @app.route('/edit/<int:equip_id>', methods=['GET', 'POST'])
@@ -120,8 +122,6 @@ def edit_equipment(equip_id):
             WHERE id = %s
         """, (name, type_, manufacturer, model, purchase_date, purchase_price, status, equip_id))
         db.commit()
-        cursor.close()
-        db.close()
         flash('Equipment updated successfully!', 'success')
         return redirect(url_for('equipment_details'))
 
@@ -133,8 +133,9 @@ def edit_equipment(equip_id):
 
     return render_template('edit_equipment.html', equipment=equipment)
 
+
 # Route for deleting equipment
-@app.route('/delete/<int:equip_id>')
+@app.route('/delete/<int:equip_id>', methods=['POST'])
 def delete_equipment(equip_id):
     if 'user_id' not in session:
         return redirect(url_for('index'))  # Redirect to login if not logged in
