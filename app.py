@@ -34,7 +34,6 @@ def index():
         cursor.execute(sql, val)
         conn.commit()
 
-        # After insertion, redirect back to the main page (to avoid re-submission on page refresh)
         return redirect('/')
 
     # Fetch data from the 'equipment' table (GET request)
@@ -44,8 +43,38 @@ def index():
     cursor.close()
     conn.close()
 
-    # Pass the data to the template
     return render_template('index.html', equipment=equipment_data)
+
+# Route to update (edit) equipment
+@app.route('/edit/<int:id>', methods=['POST'])
+def edit_equipment(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Fetch the updated data from the form
+    name = request.form['name']
+    type = request.form['type']
+    manufacturer = request.form['manufacturer']
+    model = request.form['model']
+    purchase_date = request.form['purchase_date']
+    purchase_price = request.form['purchase_price']
+    status = request.form['status']
+
+    # Update the record in the 'equipment' table
+    sql = """
+        UPDATE equipment 
+        SET name = %s, type = %s, manufacturer = %s, model = %s, purchase_date = %s, purchase_price = %s, status = %s 
+        WHERE id = %s
+    """
+    val = (name, type, manufacturer, model, purchase_date, purchase_price, status, id)
+    cursor.execute(sql, val)
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    # Redirect back to the home page after updating
+    return redirect('/')
 
 # Route to delete equipment
 @app.route('/delete/<int:id>', methods=['POST'])
@@ -61,7 +90,6 @@ def delete_equipment(id):
     cursor.close()
     conn.close()
 
-    # After deletion, redirect back to the main page
     return redirect('/')
 
 if __name__ == "__main__":

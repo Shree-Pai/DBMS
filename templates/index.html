@@ -38,6 +38,9 @@
                     <td>{{ row[6] }}</td>
                     <td>{{ row[7] }}</td>
                     <td>
+                        <!-- Edit Button -->
+                        <button onclick="editEquipment('{{ row[0] }}', '{{ row[1] }}', '{{ row[2] }}', '{{ row[3] }}', '{{ row[4] }}', '{{ row[5] }}', '{{ row[6] }}', '{{ row[7] }}')">Edit</button>
+
                         <!-- Delete Form -->
                         <form action="/delete/{{ row[0] }}" method="POST" style="display:inline-block;">
                             <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this equipment?');">
@@ -48,9 +51,11 @@
             </tbody>
         </table>
 
-        <!-- Form to add new equipment -->
-        <h2>Add New Equipment</h2>
-        <form action="/" method="POST">
+        <!-- Form to add or edit equipment -->
+        <h2 id="formTitle">Add New Equipment</h2>
+        <form action="/" method="POST" id="equipmentForm">
+            <input type="hidden" id="id" name="id">  <!-- Hidden field to store the equipment ID for editing -->
+            
             <label for="name">Equipment Name:</label><br>
             <input type="text" id="name" name="name" required><br><br>
 
@@ -72,8 +77,28 @@
             <label for="status">Status:</label><br>
             <input type="text" id="status" name="status" required><br><br>
 
-            <input type="submit" value="Add Equipment">
+            <input type="submit" value="Submit">
         </form>
     </div>
+
+    <script>
+        function editEquipment(id, name, type, manufacturer, model, purchase_date, purchase_price, status) {
+            // Set the form title to "Edit Equipment"
+            document.getElementById('formTitle').innerText = "Edit Equipment";
+
+            // Populate the form with the existing data
+            document.getElementById('id').value = id;
+            document.getElementById('name').value = name;
+            document.getElementById('type').value = type;
+            document.getElementById('manufacturer').value = manufacturer;
+            document.getElementById('model').value = model;
+            document.getElementById('purchase_date').value = purchase_date;
+            document.getElementById('purchase_price').value = purchase_price;
+            document.getElementById('status').value = status;
+
+            // Change the form action to update the existing record
+            document.getElementById('equipmentForm').action = "/edit/" + id;
+        }
+    </script>
 </body>
 </html>
